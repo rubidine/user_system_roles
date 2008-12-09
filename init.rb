@@ -27,7 +27,7 @@ end
 # mode) you will need your extension to be reloaded each time the application
 # is reset, so use the hook we provide for you.
 #
-Dependencies.register_user_system_has_groups_extension do
+ActiveSupport::Dependencies.register_user_system_has_groups_extension do
   User.send :include, UserModelHasGroups
   UserSystem.extend UserSystemHasGroups
   ApplicationController.send :include, UserSystemHasGroupsLoginFilters

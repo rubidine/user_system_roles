@@ -9,7 +9,7 @@ ActionController::Routing::RouteSet.send :include, UserSystemHasGroupsRoutingExt
 
 # Dependency reload mechanism
 require File.join(File.dirname(__FILE__), 'user_system_has_groups_dependency_extension')
-Dependencies.extend UserSystemHasGroupsDependencyExtension
+ActiveSupport::Dependencies.extend UserSystemHasGroupsDependencyExtension
 
 # Load paths go after rails app's own lib/, before previously loaded plugins
 ali = $LOAD_PATH.index(File.join(RAILS_ROOT, 'lib')) || 0
@@ -21,7 +21,7 @@ paths = [
 ]
 paths.each do |p|
   $LOAD_PATH.insert(ali + 1, p)
-  Dependencies.load_paths << p
+  ActiveSupport::Dependencies.load_paths << p
 end
 
 ActionController::Base.prepend_view_path File.join(File.dirname(__FILE__), '..', 'app', 'views')
