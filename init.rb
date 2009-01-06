@@ -11,7 +11,17 @@ require File.join(directory, 'ext_lib', 'init.rb')
 
 # define some routes
 ActionController::Routing::Routes.define_user_system_has_groups_routes do |map|
-  map.resources :users, :collection => { 'inform_nogroup' => :get}
+  set = map.instance_variable_get(:@set)
+  routes = set.routes
+  builder = set.builder
+  route = builder.build('/users/inform_nogroup', {:controller => 'users', :action => "inform_nogroup", :method => :get})
+  position = 0
+  while routes[position]
+    break if  routes[position].defaults[:controller] == "users" \
+          and routes[position].defaults[:action] == "show"
+    position += 1
+  end
+  routes.insert position, route
 end
 
 # Monkey patch into the core classes.

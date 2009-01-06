@@ -2,12 +2,32 @@ class GroupActivation < ActiveRecord::Base
   belongs_to :user
   belongs_to :group
 
-  has_many :disabled_periods
+  has_many :disabled_periods, :as => :disabled_item
   belongs_to :current_disabled_period,
              :foreign_key => :disabled_period_id,
              :class_name => 'DisabledPeriod'
 
   validates_presence_of :user, :group
+
+  named_scope :active, 
+              lambda{
+                cond = merge_conditions(
+                         {'disabled_periods.disabled_item_type' => 'GroupActivation'},
+                         [
+                           'disabled_periods.disabled_from <= ? ' +
+                           'AND (disabled_periods.disabled_until > ? ' +
+                           'OR disabled_periods.disabled_until IS NULL)',
+                           Time.now, Time.now
+                         ]
+                       )
+                {
+                  :joins => [
+                    "LEFT JOIN disabled_periods ON #{cond} " +
+                    "AND disabled_periods.disabled_item_id = group_activations.id"
+                  ],
+                  :conditions => {'disabled_periods.id' => nil}
+                }
+              }
 
   def disabled?
     return false unless disabled_until
@@ -39,22 +59,10 @@ class GroupActivation < ActiveRecord::Base
     !disabled?
   end
 
-  def self.valid_for_user user_record
-    find(:all, :conditions => {:user_id => user_record.id, :disabled_until => nil})
-  end
-
   private
   def compute_disabled
     time = Time.now
-    period = disabled_periods.find(
-               :first,
-               :conditions => [
-                 'disabled_until > ? and disabled_from <= ?',
-                 time, time
-               ],
-               :order => 'disabled_until desc'
-             )
-    if period
+    if period = disabled_periods.disabled_at(time).ordered.find(:first)
       self.update_attributes(
         :disabled_until => period.disabled_until,
         :disabled_period_id => period.id

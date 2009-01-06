@@ -9,10 +9,9 @@ module UserSystemHasGroupsLoginFilters
       if valid_groups.empty?
         true
       else
-        if (valid_groups & GroupActivation.valid_for_user(current_user).collect(&:group)).empty?
-          session[:last_params] = params
-          session[:required_groups] = valid_groups
-          redirect_to :controller => '/users', :action => 'inform_nogroup'
+        if (valid_groups & current_user.group_activations.active.collect(&:group).collect(&:name)).empty?
+          render :template => 'users/inform_nogroup',
+                 :locals => {:required_groups => valid_groups}
           false
         else
           true
@@ -25,9 +24,9 @@ module UserSystemHasGroupsLoginFilters
   
   def require_user_or_group_login valid_users, valid_groups
     cu = current_user
-    grps = GroupActivation.valid_for_user(current_user) if cu
+    grps = current_user.group_activations.active.collect(&:group) if cu
 
-    if !valid_users.empty? and (!cu or !valid_users.include(cu))
+    if !valid_users.empty? and (!cu or !valid_users.include(cu.lowercase_login))
       # TODO: remove static messages
       flash.now[:notice] = "You need to login to proceed."
       redirect_to new_session_url
@@ -57,35 +56,19 @@ module UserSystemHasGroupsLoginFilters
 
   module ClassMethods
     def only_for_group *groups
-      options = groups.last.is_a?(Hash) ? groups.pop : {}
-      _groups = groups.collect{|x| groupify(x.downcase) }
+      options = groups.extract_options!
+      groups = groups.map &:downcase
       before_filter(options) do |inst|
-        inst.send(:require_group_login, *_groups)
+        inst.send(:require_group_login, *groups)
       end
     end
 
     def only_for_users_or_groups users, groups, options = {}
-      _groups = groups.collect{|x| Groups.find_by_lowercase_name(x.downcase) }
-      _users = users.collect{|x| User.find_by_lowercase_login(x.downcase) }
+      users = users.map &:downcase
+      groups = groups.map &:downcase
       before_filter(options) do
-        require_user_or_group_login(_users, _groups)
+        require_user_or_group_login(users, groups)
       end
-    end
-
-    def to_model(str_or_model, model_class, finder)
-      if str_or_model.is_a?(model_class)
-        str_or_model
-      else
-        model_class.send(finder, str_or_model)
-      end
-    end
-
-    def groupify(str_or_group)
-      to_model(str_or_group, Group, :find_by_lowercase_name)
-    end
-
-    def userify(str_or_user)
-      to_model(str_or_group, User, :find_by_lowercase_name)
     end
   end
 end

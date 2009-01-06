@@ -1,10 +1,11 @@
 class Group < ActiveRecord::Base
   has_many :group_activations, :include => :user
-  belongs_to :moderator, :class_name => 'User'
 
   validates_presence_of :name, :lowercase_name
   validates_uniqueness_of :lowercase_name
   validates_length_of :name, :minimum => 1
+
+  attr_protected :lowercase_name
 
   # Name is used for display, but internally we track groups by all lowercase.
   # We overwrite this to keep the lowercase version in-sync.
@@ -23,6 +24,6 @@ class Group < ActiveRecord::Base
   end
 
   def valid_users
-    vg = group_activations.select{|act| act.is_valid?}.collect{|x| x.user}
+    vg = group_activations.active.collect{|x| x.user}
   end
 end
