@@ -48,6 +48,15 @@ module UserModelHasGroups
 
   # Return a list of groups that the user is active in at this time
   def valid_groups
-    group_activations.select{|x| x.valid?}.map{|x| x.group}
+    group_activations.active.collect(&:group)
+  end
+
+  #
+  # Give a group name or a group model
+  #
+  def member_of? group, include_disabled=false
+    grps = include_disabled ? group_activations.collect(&:group) : valid_groups
+    group = group.is_a?(String) ? group.downcase : group.lowercase_name
+    grps.any?{|g| g.lowercase_name == group}
   end
 end
