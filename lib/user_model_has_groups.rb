@@ -6,6 +6,51 @@ module UserModelHasGroups
     kls.send :has_many, :group_activations
     kls.send :has_many, :groups, :through => :group_activations
 
+    kls.send :named_scope, :member_of, lambda{|group|
+      group = group.is_a?(Group) ? \
+                group.id : \
+                (group.to_i == 0) ? \
+                  Group.find_by_lowercase_name(group.downcase) : 
+                  group.to_i
+      ucond = kls.merge_conditions(
+        {'udp.disabled_item_type' => 'User'},
+        [
+          'udp.disabled_from <= ? ' +
+          'AND (udp.disabled_until > ? OR udp.disabled_until IS NULL)',
+          Time.now, Time.now
+        ]
+      )
+      gacond = kls.merge_conditions(
+        {'gadp.disabled_item_type' => 'GroupActivation'},
+        [
+          'gadp.disabled_from <= ? ' +
+          'AND (gadp.disabled_until > ? OR gadp.disabled_until IS NULL)',
+          Time.now, Time.now
+        ]
+      )
+      gcond = kls.merge_conditions(
+        {'gdp.disabled_item_type' => 'Group'},
+        [
+          'gdp.disabled_from <= ? ' +
+          'AND (gdp.disabled_until > ? OR gdp.disabled_until IS NULL)',
+          Time.now, Time.now
+        ]
+      )
+      {
+        :joins =>
+          "LEFT JOIN disabled_periods udp ON #{ucond} " +
+          "LEFT JOIN disabled_periods gadp ON #{gacond} " +
+          "LEFT JOIN disabled_periods gdp ON #{gcond}",
+        :include => :group_activations,
+        :conditions => {
+          'udp.id' => nil,
+          'gadp.id' => nil,
+          'gdp.id' => nil,
+          'group_activations.group_id' => group
+        }
+      }
+    }
+
     kls.send :attr_accessor, :dont_join_default_groups
     kls.send :after_create, :join_default_groups
   end
