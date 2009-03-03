@@ -9,7 +9,7 @@ module UserSystemHasGroupsLoginFilters
       if valid_groups.empty?
         true
       else
-        if (valid_groups & current_user.group_activations.active.collect(&:group).collect(&:name)).empty?
+        if (valid_groups & current_user.group_activations.active.collect(&:group).collect(&:lowercase_name)).empty?
           render :template => 'users/inform_nogroup',
                  :locals => {:required_groups => valid_groups},
                  :status => 403
