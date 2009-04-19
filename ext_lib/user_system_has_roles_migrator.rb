@@ -1,5 +1,5 @@
 module ActiveRecord
-  class PluginMigrator < Migrator
+  class UserSystemHasRolesMigrator < Migrator
     def initialize(direction, migrations_path, target_version = nil)
       raise StandardError.new("This database does not yet support migrations") unless Base.connection.supports_migrations?
       Base.connection.initialize_schema_migrations_table(ActiveRecord::PluginMigrator)
@@ -7,7 +7,7 @@ module ActiveRecord
     end
 
     def self.schema_migrations_table_name
-      'plugin_schema_migrations_user_system_has_groups'
+      'plugin_schema_migrations_user_system_has_roles'
     end
   end
 end
@@ -23,7 +23,7 @@ module ActiveRecord
           create_table(sm, :id => false) do |t|
             t.column :version, :string, :null => false
           end
-          add_index sm, :version, :unique => true, :name => 'unique_schema_migrations_user_system_has_groups'
+          add_index sm, :version, :unique => true, :name => 'unique_schema_migrations_user_system_has_roles'
 
           si = sm.gsub(/schema_migrations/, 'schema_info')
           if tables.detect{|t| t == si}

@@ -1,18 +1,18 @@
-class GroupActivation < ActiveRecord::Base
+class RoleActivation < ActiveRecord::Base
   belongs_to :user
-  belongs_to :group
+  belongs_to :role
 
   has_many :disabled_periods, :as => :disabled_item
   belongs_to :current_disabled_period,
              :foreign_key => :disabled_period_id,
              :class_name => 'DisabledPeriod'
 
-  validates_presence_of :user, :group
+  validates_presence_of :user, :role
 
   named_scope :active, 
               lambda{
                 cond = merge_conditions(
-                         {'disabled_periods.disabled_item_type' => 'GroupActivation'},
+                         {'disabled_periods.disabled_item_type' => 'RoleActivation'},
                          [
                            'disabled_periods.disabled_from <= ? ' +
                            'AND (disabled_periods.disabled_until > ? ' +
@@ -23,7 +23,7 @@ class GroupActivation < ActiveRecord::Base
                 {
                   :joins => [
                     "LEFT JOIN disabled_periods ON #{cond} " +
-                    "AND disabled_periods.disabled_item_id = group_activations.id"
+                    "AND disabled_periods.disabled_item_id = role_activations.id"
                   ],
                   :conditions => {'disabled_periods.id' => nil}
                 }

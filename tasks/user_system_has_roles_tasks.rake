@@ -1,12 +1,12 @@
-namespace :user_system_has_groups do
+namespace :user_system_has_roles do
 
-  desc "Run migrations for the UserSystemHasGroups Extension"
+  desc "Run migrations for the UserSystemHasRoles Extension"
   task :migrate => [:environment] do
     require File.join(File.dirname(__FILE__), '..', 'ext_lib', 'plugin_migrator')
-    ActiveRecord::PluginMigrator.migrate(File.join(File.dirname(__FILE__), '..', 'db', 'migrate'), ENV['VERSION'] ? ENV['VERSION'].to_i : nil)
+    ActiveRecord::UserSystemHasRolesMigrator.migrate(File.join(File.dirname(__FILE__), '..', 'db', 'migrate'), ENV['VERSION'] ? ENV['VERSION'].to_i : nil)
   end
 
-  desc 'Test the UserSystemHasGroups Extension.'
+  desc 'Test the UserSystemHasRoles Extension.'
   Rake::TestTask.new(:test) do |t|
     t.ruby_opts << "-r#{RAILS_ROOT}/test/test_helper"
     t.libs << File.join(File.dirname(__FILE__), '..', 'lib')

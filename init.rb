@@ -10,11 +10,11 @@ end
 require File.join(directory, 'ext_lib', 'init.rb')
 
 # define some routes
-ActionController::Routing::Routes.define_user_system_has_groups_routes do |map|
+ActionController::Routing::Routes.define_user_system_has_roles_routes do |map|
   set = map.instance_variable_get(:@set)
   routes = set.routes
   builder = set.builder
-  route = builder.build('/users/inform_nogroup', {:controller => 'users', :action => "inform_nogroup", :method => :get})
+  route = builder.build('/users/inform_norole', {:controller => 'users', :action => "inform_norole", :method => :get})
   position = 0
   while routes[position]
     break if  routes[position].defaults[:controller] == "users" \
@@ -37,8 +37,8 @@ end
 # mode) you will need your extension to be reloaded each time the application
 # is reset, so use the hook we provide for you.
 #
-ActiveSupport::Dependencies.register_user_system_has_groups_extension do
-  User.send :include, UserModelHasGroups
-  UserSystem.extend UserSystemHasGroups
-  ApplicationController.send :include, UserSystemHasGroupsLoginFilters
+ActiveSupport::Dependencies.register_user_system_has_roles_extension do
+  User.send :include, UserModelHasRoles
+  UserSystem.extend UserSystemHasRoles
+  ApplicationController.send :include, UserSystemHasRolesLoginFilters
 end

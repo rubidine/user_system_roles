@@ -4,12 +4,12 @@ unless defined?(ActionController) and defined?(ActionController::Dispatcher)
 end
 
 # Routing Extension
-require File.join(File.dirname(__FILE__), 'user_system_has_groups_routing_extension')
-ActionController::Routing::RouteSet.send :include, UserSystemHasGroupsRoutingExtension
+require File.join(File.dirname(__FILE__), 'user_system_has_roles_routing_extension')
+ActionController::Routing::RouteSet.send :include, UserSystemHasRolesRoutingExtension
 
 # Dependency reload mechanism
-require File.join(File.dirname(__FILE__), 'user_system_has_groups_dependency_extension')
-ActiveSupport::Dependencies.extend UserSystemHasGroupsDependencyExtension
+require File.join(File.dirname(__FILE__), 'user_system_has_roles_dependency_extension')
+ActiveSupport::Dependencies.extend UserSystemHasRolesDependencyExtension
 
 # Load paths go after rails app's own lib/, before previously loaded plugins
 ali = $LOAD_PATH.index(File.join(RAILS_ROOT, 'lib')) || 0
@@ -29,7 +29,7 @@ ActionController::Base.prepend_view_path File.join(File.dirname(__FILE__), '..',
 # copy in assets
 require 'fileutils'
 ['javascripts', 'stylesheets', 'images'].each do |type|
-  r_path = File.join(RAILS_ROOT, 'public', type, 'user_system_has_groups')
+  r_path = File.join(RAILS_ROOT, 'public', type, 'user_system_has_roles')
   p_path = File.join(File.dirname(__FILE__), '..', 'public', type)
   unless File.directory?(r_path)
     FileUtils.mkdir_p(r_path)

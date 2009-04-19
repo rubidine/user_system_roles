@@ -6,7 +6,7 @@
 
 require 'test/unit'
 
-class UserSystemHasGroupsTest < Test::Unit::TestCase
+class UserSystemHasRolesTest < Test::Unit::TestCase
   # Replace this with your real tests.
   def test_this_plugin
     flunk

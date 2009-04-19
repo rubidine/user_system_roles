@@ -1,8 +1,8 @@
-module UserSystemHasGroupsDependencyExtension
+module UserSystemHasRolesDependencyExtension
 
   def self.extended kls
     kls.class_eval do
-      def register_user_system_has_groups_extension &blk
+      def register_user_system_has_roles_extension &blk
         if blk
           ActionController::Dispatcher.to_prepare &blk
 
