@@ -6,12 +6,12 @@ module UserModelHasRoles
     kls.send :has_many, :role_activations
     kls.send :has_many, :roles, :through => :role_activations
 
-    kls.send :named_scope, :member_of, lambda{|role|
+    kls.send :named_scope, :has_role, lambda{|role|
       role = role.is_a?(Role) ? \
                 role.id : \
-                (role.to_i == 0) ? \
-                  Role.find_by_lowercase_name(role.downcase) : 
-                  role.to_i
+                role.to_i.nonzero? ? \
+                  role.to_i :
+                  Role.find_by_lowercase_name(role.downcase)
       ucond = kls.merge_conditions(
         {'udp.disabled_item_type' => 'User'},
         [
@@ -51,18 +51,18 @@ module UserModelHasRoles
       }
     }
 
-    kls.send :attr_accessor, :dont_join_default_roles
-    kls.send :after_create, :join_default_roles
+    kls.send :attr_accessor, :dont_add_default_roles
+    kls.send :after_create, :add_default_roles
   end
 
   # Join a role, or a list of roles really.  Can be specified by name
   # or record.  Will join the roles it can, and set @error_message if
   # it couldn't join (it will be empty otherwise).
-  def join_role *role_list
+  def add_role *role_list
     passed = true
     @error_message = ""
     records = role_list.flatten.collect do |x|
-      x.is_a?(Role) ? x : Role.find_by_lowercase_name(x.downcase)
+      x.is_a?(Role) ? x : Role.find_by_lowercase_name(x.to_s.downcase)
     end
     records.compact.each do |x|
       if act = role_activations.find_by_role_id(x.id)
@@ -79,16 +79,16 @@ module UserModelHasRoles
 
   # The ones in UserSystem.default_new_user_roles
   # To disable this behavior per-user:
-  #   user.dont_join_default_roles = true ; user.save
+  #   user.dont_add_default_roles = true ; user.save
   # or
-  #   user.create params[:user].merge(:dont_join_default_roles => true)
+  #   user.create params[:user].merge(:dont_add_default_roles => true)
   #
   # To disable joining roles for all users, just 
-  #   UserSystem.default_new_user_gruops = []
+  #   UserSystem.default_new_user_roles = []
   #
   def join_default_roles
-    return if @dont_join_default_roles
-    join_role UserSystem.default_new_user_roles
+    return if @dont_add_default_roles
+    add_role UserSystem.default_new_user_roles
   end
 
   # Return a list of roles that the user is active in at this time
@@ -99,9 +99,9 @@ module UserModelHasRoles
   #
   # Give a role name or a role model
   #
-  def member_of? role, include_disabled=false
+  def has_role? role, include_disabled=false
     grps = include_disabled ? role_activations.collect(&:role) : valid_roles
-    role = role.is_a?(String) ? role.downcase : role.lowercase_name
+    role = role.is_a?(Role) ? role.lowercase_name : role.to_s.downcase
     grps.any?{|g| g.lowercase_name == role}
   end
 end
