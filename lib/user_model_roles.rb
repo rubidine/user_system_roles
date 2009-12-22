@@ -1,5 +1,5 @@
 # Hooks so that User speaks Role and RoleActivation
-module UserModelHasRoles
+module UserModelRoles
 
   # When included into User, add relationships and callbacks
   def self.included kls
@@ -12,40 +12,10 @@ module UserModelHasRoles
                 role.to_i.nonzero? ? \
                   role.to_i :
                   Role.find_by_lowercase_name(role.downcase)
-      ucond = kls.merge_conditions(
-        {'udp.disabled_item_type' => 'User'},
-        [
-          'udp.disabled_from <= ? ' +
-          'AND (udp.disabled_until > ? OR udp.disabled_until IS NULL)',
-          Time.now, Time.now
-        ]
-      )
-      gacond = kls.merge_conditions(
-        {'gadp.disabled_item_type' => 'RoleActivation'},
-        [
-          'gadp.disabled_from <= ? ' +
-          'AND (gadp.disabled_until > ? OR gadp.disabled_until IS NULL)',
-          Time.now, Time.now
-        ]
-      )
-      gcond = kls.merge_conditions(
-        {'gdp.disabled_item_type' => 'Role'},
-        [
-          'gdp.disabled_from <= ? ' +
-          'AND (gdp.disabled_until > ? OR gdp.disabled_until IS NULL)',
-          Time.now, Time.now
-        ]
       )
       {
-        :joins =>
-          "LEFT JOIN disabled_periods udp ON #{ucond} " +
-          "LEFT JOIN disabled_periods gadp ON #{gacond} " +
-          "LEFT JOIN disabled_periods gdp ON #{gcond}",
-        :include => :role_activations,
+        :include => {:role_activations => :role},
         :conditions => {
-          'udp.id' => nil,
-          'gadp.id' => nil,
-          'gdp.id' => nil,
           'role_activations.role_id' => role
         }
       }
@@ -56,8 +26,8 @@ module UserModelHasRoles
   end
 
   # Join a role, or a list of roles really.  Can be specified by name
-  # or record.  Will join the roles it can, and set @error_message if
-  # it couldn't join (it will be empty otherwise).
+  # or record.  Will add the roles it can, and set @error_message if
+  # it couldn't add (it will be empty otherwise).
   def add_role *role_list
     passed = true
     @error_message = ""
@@ -83,24 +53,19 @@ module UserModelHasRoles
   # or
   #   user.create params[:user].merge(:dont_add_default_roles => true)
   #
-  # To disable joining roles for all users, just 
+  # To disable adding roles for all users, just 
   #   UserSystem.default_new_user_roles = []
   #
-  def join_default_roles
+  def add_default_roles
     return if @dont_add_default_roles
     add_role UserSystem.default_new_user_roles
-  end
-
-  # Return a list of roles that the user is active in at this time
-  def valid_roles
-    role_activations.active.collect(&:role)
   end
 
   #
   # Give a role name or a role model
   #
-  def has_role? role, include_disabled=false
-    grps = include_disabled ? role_activations.collect(&:role) : valid_roles
+  def has_role? role
+    grps = role_activations.collect(&:role)
     role = role.is_a?(Role) ? role.lowercase_name : role.to_s.downcase
     grps.any?{|g| g.lowercase_name == role}
   end

@@ -1,9 +1,9 @@
-namespace :user_system_has_roles do
+namespace :user_system_roles do
 
-  desc "Run migrations for the UserSystemHasRoles Extension"
+  desc "Run migrations for the UserSystemRoles Extension"
   task :migrate => [:environment] do
-    require File.join(File.dirname(__FILE__), '..', 'ext_lib', 'user_system_has_roles_migrator')
-    ActiveRecord::UserSystemHasRolesMigrator.migrate(File.join(File.dirname(__FILE__), '..', 'db', 'migrate'), ENV['VERSION'] ? ENV['VERSION'].to_i : nil)
+    require File.join(File.dirname(__FILE__), '..', 'db', 'user_system_roles_migrator')
+    UserSystemRolesMigrator.migrate(File.join(File.dirname(__FILE__), '..', 'db', 'migrate'), ENV['VERSION'] ? ENV['VERSION'].to_i : nil)
   end
 
   desc 'Test the UserSystemHasRoles Extension.'

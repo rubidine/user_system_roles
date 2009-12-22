@@ -1,4 +1,4 @@
-module UserSystemHasRoles
+module UserSystemRoles
 
   mattr_accessor :administrators_role
   self.administrators_role = 'Administrators'

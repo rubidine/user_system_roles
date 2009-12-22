@@ -3,9 +3,6 @@ class CreateRoleActivations < ActiveRecord::Migration
     create_table :role_activations do |t|
       t.integer :role_id, :user_id
 
-      t.timestamp :disabled_until
-      t.integer :disabled_period_id
-
       t.timestamps
     end
   end

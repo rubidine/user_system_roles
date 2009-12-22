@@ -9,7 +9,7 @@ module UserSystemHasRolesLoginFilters
       if valid_roles.empty?
         true
       else
-        if (valid_roles & current_user.role_activations.active.collect(&:role).collect(&:lowercase_name)).empty?
+        if (valid_roles & current_user.role_activations.collect(&:role).collect(&:lowercase_name)).empty?
           render :template => 'users/inform_norole',
                  :locals => {:required_roles => valid_roles},
                  :status => 403
@@ -25,7 +25,7 @@ module UserSystemHasRolesLoginFilters
   
   def require_user_or_role_login valid_users, valid_roles
     cu = current_user
-    grps = current_user.role_activations.active.collect(&:role) if cu
+    grps = current_user.role_activations.collect(&:role) if cu
 
     if !valid_users.empty? and (!cu or !valid_users.include(cu.lowercase_login))
       # TODO: remove static messages

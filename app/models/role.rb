@@ -23,7 +23,4 @@ class Role < ActiveRecord::Base
     raise "Don't set lowercase name directly!"
   end
 
-  def valid_users
-    vg = role_activations.active.collect{|x| x.user}
-  end
 end
