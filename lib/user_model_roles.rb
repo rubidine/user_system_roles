@@ -12,7 +12,6 @@ module UserModelRoles
                 role.to_i.nonzero? ? \
                   role.to_i :
                   Role.find_by_lowercase_name(role.downcase)
-      )
       {
         :include => {:role_activations => :role},
         :conditions => {

@@ -1,4 +1,4 @@
-module UserSystemHasRolesLoginFilters
+module UserSystemRolesLoginFilters
   private
   def self.included kls
     kls.send :extend, ClassMethods
